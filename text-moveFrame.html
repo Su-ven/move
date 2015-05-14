@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title></title>
+	<link rel="stylesheet" href="">
+	<style type="text/css" media="screen">
+		#div1{
+			width: 500px;
+			height: 500px;
+			background: red;
+		}
+	</style>
+	<script src="jspackage.js" type="text/javascript" charset="utf-8"></script>
+	<script src="Tween.js" type="text/javascript" charset="utf-8"></script>
+	<script type="text/javascript" charset="utf-8">
+		window.onload=function(){
+			var oDiv = document.getElementById('div1');
+			function myAnimate(obj,attrobj,dur,fn){
+				var fn=fn?fn: Tween.Quad.easeIn;
+				var start = [];
+				var change = [];
+				var times = 0;
+				for (var i in attrobj) {
+					start[i] = css(obj,i);
+					change[i] = attrobj[i]-start[i];
+				};
+				obj.timer = setInterval(function(){
+					var stop = true;
+					if (times<dur) {
+						stop = false;
+						for (var i in attrobj) {
+							 css(obj,i,fn(times,start[i],change[i],dur))
+						};
+					};
+					
+					times += 60;
+
+					if (stop) {
+						for (var i in attrobj) {
+							css(obj,i,attrobj[i]);
+						};
+						clearInterval(obj.timer);
+						obj.timer=null;
+					};
+				},60);
+			}
+			myAnimate(oDiv,{width:100,height:100},600,Tween.Bounce.easeIn);
+		}
+	</script>
+</head>
+<body>
+	<div id="div1"></div>
+</body>
+</html>
