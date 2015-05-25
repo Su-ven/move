@@ -17,36 +17,90 @@
 	<script type="text/javascript" charset="utf-8">
 		window.onload=function(){
 			var oDiv = document.getElementById('div1');
-			function myAnimate(obj,attrobj,dur,fn){
-				var fn=fn?fn: Tween.Quad.easeIn;
-				var start = [];
-				var change = [];
-				var times = 0;
-				for (var i in attrobj) {
-					start[i] = css(obj,i);
-					change[i] = attrobj[i]-start[i];
-				};
-				obj.timer = setInterval(function(){
-					var stop = true;
-					if (times<dur) {
-						stop = false;
-						for (var i in attrobj) {
-							 css(obj,i,fn(times,start[i],change[i],dur))
-						};
-					};
-					
-					times += 60;
+			//obj为目标dom节点，attrobj为操作属性键值对，dur为设定运行时间，fn为设定运动方式
+			function myAnimate(obj,attrobj,dur,fn,callback){
+				q.queue(function(){
+					var tween;
+					var callfn;
 
-					if (stop) {
-						for (var i in attrobj) {
-							css(obj,i,attrobj[i]);
-						};
-						clearInterval(obj.timer);
-						obj.timer=null;
+					if (arguments.length>=4) {
+						// 由于传入参数数量未知，通过判断选择，Tween方法的参数为4或者大于4，符合条件则存在Tween方法（参数fn），把fn赋予tween，否则则说明使用默认tween，fn为回调函数
+						if (fn.length>=4) {
+							tween = fn;
+							callfn = null;
+						}else{
+							tween = Tween.Quad.easeIn;
+							callfn = fn;
+						}
+					}else{
+							tween = fn?fn: Tween.Quad.easeIn;
+							callback = callback?callback:null;
+						}
+
+					var start = [];
+					var change = [];
+					var times = 0;
+					for (var i in attrobj) {
+						start[i] = css(obj,i);
+						change[i] = attrobj[i]-start[i];
 					};
-				},60);
+					obj.timer = setInterval(function(){
+						var stop = true;
+						if (times<dur) {
+							stop = false;
+							for (var i in attrobj) {
+								 css(obj,i,tween(times,start[i],change[i],dur))
+							};
+						};
+						
+						times += 60;
+
+						if (stop) {
+							for (var i in attrobj) {
+								css(obj,i,attrobj[i]);
+							};
+							clearInterval(obj.timer);
+							if (callfn) {
+								callfn()
+							};
+							q.dequeue();
+						};
+					},60);
+				});
 			}
-			myAnimate(oDiv,{width:100,height:100},600,Tween.Bounce.easeIn);
+
+			function Queue(){
+		        this.list=[];
+		    }
+
+		    Queue.prototype={
+		        queue:function(fn){
+		            this.list.push(fn);
+		 
+		            // 为了让队列自动执行，给list列表一个标记mark，当list的第一位不为mark的时候，让队列执行
+
+		            if (this.list[0] != 'mark') {
+		                this.dequeue();
+		            };
+		            return this;
+		        },
+		        dequeue:function(){
+		            var fn = this.list.shift();
+		            if (fn=='mark') {
+		                fn = this.list.shift();
+		            };
+		            if (fn) {
+		                this.list.unshift('mark');
+		                fn();
+		            };
+		        }
+		    }
+
+		    var q = new Queue();
+		    myAnimate(oDiv,{width:100,height:100},600);
+		    myAnimate(oDiv,{width:700,height:100},1600);
+		    myAnimate(oDiv,{width:700,height:740},800);
+		    myAnimate(oDiv,{width:700,height:700},600)
 		}
 	</script>
 </head>
